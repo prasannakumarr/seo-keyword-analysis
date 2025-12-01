@@ -4,7 +4,7 @@ Comprehensive SEO marketing performance analysis for keyword tracking and optimi
 
 ## Overview
 
-This project analyzes 258 SEO keywords to identify optimization opportunities and track performance metrics.
+This project analyzes 258 SEO keywords to identify optimization opportunities and track performance metrics. The data is sourced from ahrefs seo tool
 
 ## Dataset
 
