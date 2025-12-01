@@ -1,0 +1,5 @@
+We are going to interactively work together a do a data analysis for marketing performance. 
+We will use python, pandas, seaborn, matplotlib and other necessary libraries for analysis. 
+You’ll find a SEO_analysis.csv file which has the following data: Keywords, current position,CPC,Volume, KD(keyword difficulty: How difficult is it to rank for the keyword on search engines). We are going to work around these data for the analysis of SEO performance.
+You can start off with installing the necessary libraries, setup git, integrate with my repository(empty) from GitHub(you have login, I guess). As a first analysis: create an exploratory analysis of the data provided on the csv file. 
+You’ll need to Create all the necessary plot and save it in the same root folder. Some times you must also analyse and create tables for analysis.
