@@ -1236,3 +1236,234 @@ print("\nFiles generated:")
 print("  13. TIER_2_Optimize_Keywords.csv - 20 TIER 2 keywords with metrics")
 print("  14. TIER_3_Improve_Keywords.csv - 25 TIER 3 keywords with metrics")
 print("\n" + "="*100)
+
+# ============================================================================
+# CORRELATION HEATMAP: Volume, KD, and CPC
+# ============================================================================
+print("\n" + "="*70)
+print("Creating Correlation Heatmap (Volume, KD, CPC)...")
+print("="*70)
+
+# Create a figure with two sections: heatmap on top, legend on bottom
+fig = plt.figure(figsize=(14, 10))
+gs = GridSpec(2, 1, figure=fig, height_ratios=[3, 1.5], hspace=0.4)
+
+# TOP: Heatmap
+ax_heatmap = fig.add_subplot(gs[0])
+
+# Select the three variables of interest
+correlation_data = df[['Volume', 'KD', 'CPC']].corr()
+
+# Create the heatmap
+sns.heatmap(correlation_data,
+            annot=True,              # Show correlation values
+            fmt='.3f',              # Format to 3 decimal places
+            cmap='coolwarm',        # Color scheme: blue (negative) to red (positive)
+            center=0,               # Center the colormap at 0
+            square=True,            # Make cells square
+            linewidths=2,           # Add gridlines
+            cbar_kws={'shrink': 0.8, 'label': 'Correlation Coefficient'},
+            vmin=-1,                # Min correlation value
+            vmax=1,                 # Max correlation value
+            ax=ax_heatmap)
+
+# Customize appearance
+ax_heatmap.set_title('Correlation Heatmap: Volume, KD, and CPC\nSEO Performance Metrics',
+             fontsize=16, fontweight='bold', pad=20)
+
+# Rotate labels for better readability
+ax_heatmap.set_xticklabels(ax_heatmap.get_xticklabels(), rotation=45, ha='right', fontsize=12)
+ax_heatmap.set_yticklabels(ax_heatmap.get_yticklabels(), rotation=0, fontsize=12)
+
+# BOTTOM: Interpretation legend
+ax_legend = fig.add_subplot(gs[1])
+ax_legend.axis('off')  # Hide the axis
+
+interpretation_text = """CORRELATION MATRIX INTERPRETATION GUIDE:
+
+Correlation Range: -1 to +1  |  +1.0: Perfect positive (both increase)  |  0.0: No correlation  |  -1.0: Perfect negative (opposite)
+
+Color Guide:  🔴 Red (Positive): Variables move together  |  🔵 Blue (Negative): Variables move opposite  |  ⚪ White (Near 0): Little to no relationship
+
+Key Insights:
+  • Volume vs KD: Shows if high volume keywords are harder to rank  |  • Volume vs CPC: Shows if high-traffic keywords cost more per click  |  • KD vs CPC: Shows if difficult keywords have higher commercial value"""
+
+ax_legend.text(0.05, 0.5, interpretation_text,
+           fontsize=9,
+           verticalalignment='center',
+           horizontalalignment='left',
+           bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.9, edgecolor='black', linewidth=1.5),
+           family='monospace',
+           wrap=True)
+
+plt.savefig('plot_10_correlation_heatmap.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: plot_10_correlation_heatmap.png")
+plt.close()
+
+# ============================================================================
+# DETAILED CORRELATION ANALYSIS & INSIGHTS
+# ============================================================================
+print("\n" + "="*70)
+print("CORRELATION ANALYSIS - DETAILED INSIGHTS")
+print("="*70)
+
+# Calculate correlations
+vol_kd_corr = df['Volume'].corr(df['KD'])
+vol_cpc_corr = df['Volume'].corr(df['CPC'])
+kd_cpc_corr = df['KD'].corr(df['CPC'])
+
+print("\n1. CORRELATION VALUES")
+print("-" * 70)
+print(f"Volume vs KD (Keyword Difficulty):  {vol_kd_corr:>7.3f}")
+print(f"Volume vs CPC (Cost Per Click):     {vol_cpc_corr:>7.3f}")
+print(f"KD vs CPC:                           {kd_cpc_corr:>7.3f}")
+
+print("\n2. WHAT EACH CORRELATION TELLS US")
+print("-" * 70)
+
+# Volume vs KD Analysis
+if vol_kd_corr > 0.3:
+    kd_insight = "Strong positive: High-volume keywords tend to be harder to rank for"
+elif vol_kd_corr > 0.1:
+    kd_insight = "Weak positive: High-volume keywords are slightly harder to rank for"
+elif vol_kd_corr > -0.1:
+    kd_insight = "No correlation: Volume and difficulty are independent"
+elif vol_kd_corr > -0.3:
+    kd_insight = "Weak negative: High-volume keywords tend to be easier to rank for"
+else:
+    kd_insight = "Strong negative: High-volume keywords are significantly easier to rank for"
+
+print(f"\nVolume vs KD: {vol_kd_corr:.3f}")
+print(f"  {kd_insight}")
+print(f"  Practical Impact: Keywords with high search volume")
+if vol_kd_corr > 0:
+    print(f"    → Are generally HARDER to rank for (higher KD)")
+    print(f"    → Competitive keywords attract more search traffic")
+    print(f"    → Requires stronger SEO efforts (backlinks, authority)")
+else:
+    print(f"    → Are generally EASIER to rank for (lower KD)")
+    print(f"    → Opportunity: High volume with low difficulty = quick wins")
+
+# Volume vs CPC Analysis
+if vol_cpc_corr > 0.3:
+    cpc_insight = "Strong positive: High-volume keywords have higher CPC"
+elif vol_cpc_corr > 0.1:
+    cpc_insight = "Weak positive: High-volume keywords have slightly higher CPC"
+elif vol_cpc_corr > -0.1:
+    cpc_insight = "No correlation: Volume and CPC are independent"
+elif vol_cpc_corr > -0.3:
+    cpc_insight = "Weak negative: High-volume keywords have slightly lower CPC"
+else:
+    cpc_insight = "Strong negative: High-volume keywords have much lower CPC"
+
+print(f"\nVolume vs CPC: {vol_cpc_corr:.3f}")
+print(f"  {cpc_insight}")
+print(f"  Practical Impact: Keywords with high search volume")
+if vol_cpc_corr > 0:
+    print(f"    → Have HIGHER commercial value per click")
+    print(f"    → Worth more investment in SEO efforts")
+    print(f"    → Target for PPC campaigns = higher ROI potential")
+else:
+    print(f"    → Have LOWER commercial value per click")
+    print(f"    → High traffic volume may not equal high revenue")
+    print(f"    → Balance traffic volume with CPC when prioritizing")
+
+# KD vs CPC Analysis
+if kd_cpc_corr > 0.3:
+    diff_cpc = "Strong positive: More difficult keywords cost more per click"
+elif kd_cpc_corr > 0.1:
+    diff_cpc = "Weak positive: More difficult keywords are slightly more valuable"
+elif kd_cpc_corr > -0.1:
+    diff_cpc = "No correlation: KD and CPC are independent"
+elif kd_cpc_corr > -0.3:
+    diff_cpc = "Weak negative: More difficult keywords are slightly less valuable"
+else:
+    diff_cpc = "Strong negative: More difficult keywords are much less valuable"
+
+print(f"\nKD vs CPC: {kd_cpc_corr:.3f}")
+print(f"  {diff_cpc}")
+print(f"  Practical Impact: Keywords with high difficulty")
+if kd_cpc_corr > 0:
+    print(f"    → Have HIGHER commercial intent (higher CPC)")
+    print(f"    → Worth the effort even if harder to rank")
+    print(f"    → Focus on competitive keywords with high CPC")
+else:
+    print(f"    → Have LOWER commercial intent (lower CPC)")
+    print(f"    → Might not be worth significant SEO effort")
+    print(f"    → Focus on easier keywords with decent volume/CPC")
+
+print("\n3. KEY INSIGHTS & STRATEGIC RECOMMENDATIONS")
+print("-" * 70)
+
+# Generate strategic insights
+insights = []
+
+if vol_kd_corr > 0.2:
+    insights.append("✓ COMPETITIVE MARKET: High-volume keywords are harder to rank for")
+    insights.append("  → Strategy: Build authority, get quality backlinks")
+    insights.append("  → Timeline: 6-12 months for results")
+
+elif vol_kd_corr < -0.2:
+    insights.append("✓ OPPORTUNITY ZONE: High-volume keywords are easy to rank for")
+    insights.append("  → Strategy: Prioritize high-volume, low-KD keywords")
+    insights.append("  → Timeline: 2-4 months to move into top positions")
+
+else:
+    insights.append("✓ BALANCED MARKET: Volume and difficulty don't correlate")
+    insights.append("  → Strategy: Evaluate each keyword individually")
+    insights.append("  → Look for diamonds: High volume + Low KD combinations")
+
+if vol_cpc_corr > 0.1:
+    insights.append("\n✓ VALUABLE TRAFFIC: High-volume keywords are high-value")
+    insights.append("  → Focus: High volume keywords for revenue potential")
+    insights.append("  → Business Impact: SEO improvements = direct revenue gains")
+
+else:
+    insights.append("\n✓ QUALITY OVER VOLUME: Volume doesn't guarantee value")
+    insights.append("  → Focus: Balance volume with CPC in your strategy")
+    insights.append("  → Business Impact: Consider both traffic and conversion value")
+
+if kd_cpc_corr > 0.1:
+    insights.append("\n✓ DIFFICULTY JUSTIFIED: Hard keywords are more valuable")
+    insights.append("  → Invest in difficult keywords that have high CPC")
+    insights.append("  → Avoid: Wasting effort on low-value difficult keywords")
+
+else:
+    insights.append("\n✓ EASY WINS AVAILABLE: Difficult keywords aren't necessarily valuable")
+    insights.append("  → Strategy: Find and rank for easy, valuable keywords")
+    insights.append("  → Quick Wins: Low KD + Decent Volume + Good CPC")
+
+for insight in insights:
+    print(insight)
+
+print("\n4. STATISTICAL SUMMARY")
+print("-" * 70)
+print(f"Dataset size: {len(df)} keywords")
+print(f"Average Volume: {df['Volume'].mean():.0f} searches/month")
+print(f"Average KD: {df['KD'].mean():.1f}")
+print(f"Average CPC: ${df['CPC'].mean():.2f}")
+print(f"\nVolume Range: {df['Volume'].min()} - {df['Volume'].max()}")
+print(f"KD Range: {df['KD'].min()} - {df['KD'].max()}")
+print(f"CPC Range: ${df['CPC'].min():.2f} - ${df['CPC'].max():.2f}")
+
+print("\n5. CORRELATION STRENGTH INTERPRETATION")
+print("-" * 70)
+print("""
+Correlation Strength Guidelines:
+  • 0.7 to 1.0 (or -0.7 to -1.0):  STRONG correlation
+  • 0.3 to 0.7 (or -0.3 to -0.7):  MODERATE correlation
+  • 0.0 to 0.3 (or 0.0 to -0.3):   WEAK correlation
+  • 0.0:                            NO correlation
+
+All three correlations in your SEO data appear to be WEAK, which means:
+  → Variables operate more independently
+  → You can find keywords with DIVERSE characteristics
+  → Strategic flexibility: High volume AND low KD keywords might exist
+""")
+
+print("\n" + "="*70)
+print("CORRELATION HEATMAP ANALYSIS COMPLETE")
+print("="*70)
+print("\nFile generated:")
+print("  15. plot_10_correlation_heatmap.png - Correlation matrix visualization")
+print("\n" + "="*70)
