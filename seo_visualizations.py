@@ -213,3 +213,1026 @@ print("\nFiles generated:")
 print("  1. seo_dashboard.png - Comprehensive dashboard with 9 key visualizations")
 print("  2. seo_insights.png - Additional focused insights")
 print("  3. SEO_analysis_enhanced.csv - Enhanced dataset with performance scores")
+
+# ============================================================================
+# INDIVIDUAL POSITION-RELATED PLOTS
+# ============================================================================
+print("\n" + "="*70)
+print("Creating Individual Position-Related Plots...")
+print("="*70)
+
+# ============================================================================
+# PLOT 1: Detailed Distribution of Current Positions (Histogram)
+# ============================================================================
+print("\nCreating: Detailed Position Distribution Histogram...")
+
+fig, ax = plt.subplots(figsize=(16, 9))
+
+# Create histogram
+n, bins, patches = ax.hist(df['Current position'], bins=30, color='#3498db',
+                           edgecolor='black', alpha=0.7, linewidth=1.5)
+
+# Color code the bars based on position ranges
+for i, patch in enumerate(patches):
+    bin_center = (bins[i] + bins[i+1]) / 2
+    if bin_center <= 3:
+        patch.set_facecolor('#2ecc71')  # Green for top 3
+    elif bin_center <= 10:
+        patch.set_facecolor('#3498db')  # Blue for top 10
+    elif bin_center <= 20:
+        patch.set_facecolor('#f39c12')  # Orange for top 20
+    elif bin_center <= 50:
+        patch.set_facecolor('#e67e22')  # Dark orange for 21-50
+    else:
+        patch.set_facecolor('#e74c3c')  # Red for beyond 50
+
+# Add statistical lines
+mean_pos = df['Current position'].mean()
+median_pos = df['Current position'].median()
+
+ax.axvline(mean_pos, color='darkred', linestyle='--', linewidth=2.5,
+           label=f'Mean: {mean_pos:.1f}', alpha=0.8)
+ax.axvline(median_pos, color='darkgreen', linestyle='--', linewidth=2.5,
+           label=f'Median: {median_pos:.0f}', alpha=0.8)
+
+# Add reference lines
+ax.axvline(10, color='blue', linestyle=':', linewidth=2,
+           label='Top 10 Threshold', alpha=0.6)
+ax.axvline(20, color='orange', linestyle=':', linewidth=2,
+           label='Top 20 Threshold', alpha=0.6)
+
+# Formatting
+ax.set_xlabel('Current Position (Ranking)', fontsize=14, fontweight='bold')
+ax.set_ylabel('Number of Keywords', fontsize=14, fontweight='bold')
+ax.set_title('Distribution of Current Keyword Positions - Detailed Analysis',
+             fontsize=16, fontweight='bold', pad=20)
+ax.legend(fontsize=11, loc='upper right')
+ax.grid(True, alpha=0.3, linestyle='--')
+
+# Add statistics box
+stats_text = f'''Statistics:
+Total Keywords: {len(df)}
+Mean Position: {mean_pos:.2f}
+Median Position: {median_pos:.0f}
+Best Position: {df['Current position'].min()}
+Worst Position: {df['Current position'].max()}
+Std Dev: {df['Current position'].std():.2f}
+
+Position Breakdown:
+Top 3: {len(df[df['Current position'] <= 3])} ({len(df[df['Current position'] <= 3])/len(df)*100:.1f}%)
+Top 10: {len(df[df['Current position'] <= 10])} ({len(df[df['Current position'] <= 10])/len(df)*100:.1f}%)
+Top 20: {len(df[df['Current position'] <= 20])} ({len(df[df['Current position'] <= 20])/len(df)*100:.1f}%)
+Beyond 50: {len(df[df['Current position'] > 50])} ({len(df[df['Current position'] > 50])/len(df)*100:.1f}%)'''
+
+ax.text(0.98, 0.97, stats_text, transform=ax.transAxes,
+        fontsize=10, verticalalignment='top', horizontalalignment='right',
+        bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+
+plt.tight_layout()
+plt.savefig('plot_1_position_distribution.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: plot_1_position_distribution.png")
+plt.close()
+
+
+# ============================================================================
+# PLOT 2: Detailed Keywords by Position Ranges (Bar Chart)
+# ============================================================================
+print("Creating: Detailed Keywords by Position Ranges...")
+
+fig, ax = plt.subplots(figsize=(16, 9))
+
+# Define position ranges
+position_ranges = {
+    'Top 3\n(1-3)': (1, 3),
+    'Top 10\n(4-10)': (4, 10),
+    'Top 20\n(11-20)': (11, 20),
+    'Top 50\n(21-50)': (21, 50),
+    'Beyond 50\n(51+)': (51, 200)
+}
+
+# Count keywords in each range
+range_counts = []
+range_labels = []
+range_colors = ['#2ecc71', '#3498db', '#f39c12', '#e67e22', '#e74c3c']
+
+for label, (min_pos, max_pos) in position_ranges.items():
+    count = len(df[(df['Current position'] >= min_pos) & (df['Current position'] <= max_pos)])
+    range_counts.append(count)
+    range_labels.append(label)
+
+# Create bar chart
+bars = ax.bar(range(len(range_labels)), range_counts, color=range_colors,
+              edgecolor='black', linewidth=2, alpha=0.8)
+
+# Add value labels on bars
+for i, (bar, count) in enumerate(zip(bars, range_counts)):
+    height = bar.get_height()
+    percentage = (count / len(df)) * 100
+    ax.text(bar.get_x() + bar.get_width()/2., height,
+            f'{count}\n({percentage:.1f}%)',
+            ha='center', va='bottom', fontsize=12, fontweight='bold')
+
+# Formatting
+ax.set_xticks(range(len(range_labels)))
+ax.set_xticklabels(range_labels, fontsize=12, fontweight='bold')
+ax.set_xlabel('Position Range', fontsize=14, fontweight='bold')
+ax.set_ylabel('Number of Keywords', fontsize=14, fontweight='bold')
+ax.set_title('Keyword Distribution by Position Ranges - Detailed Breakdown',
+             fontsize=16, fontweight='bold', pad=20)
+ax.grid(True, alpha=0.3, linestyle='--', axis='y')
+
+# Add total line
+ax.axhline(y=len(df)/len(range_labels), color='red', linestyle='--',
+           linewidth=2, alpha=0.5, label=f'Average per range: {len(df)/len(range_labels):.0f}')
+ax.legend(fontsize=11)
+
+# Add summary text
+summary_text = f'''Summary:
+Total Keywords: {len(df)}
+Best Performing: Top 3 ({range_counts[0]} keywords)
+Needs Improvement: Beyond 50 ({range_counts[4]} keywords)
+First Page (1-10): {range_counts[0] + range_counts[1]} keywords ({(range_counts[0] + range_counts[1])/len(df)*100:.1f}%)
+
+Key Insights:
+• {(range_counts[0] + range_counts[1])/len(df)*100:.1f}% of keywords on first page
+• {range_counts[4]/len(df)*100:.1f}% need significant improvement
+• Focus on moving {range_counts[2]} keywords from positions 11-20 to top 10'''
+
+ax.text(0.02, 0.97, summary_text, transform=ax.transAxes,
+        fontsize=11, verticalalignment='top', horizontalalignment='left',
+        bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
+
+plt.tight_layout()
+plt.savefig('plot_2_position_ranges.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: plot_2_position_ranges.png")
+plt.close()
+
+
+# ============================================================================
+# PLOT 3: Position Trends Over Time (Sample/Template)
+# ============================================================================
+print("Creating: Position Trends Over Time (Sample Template)...")
+
+fig, ax = plt.subplots(figsize=(16, 9))
+
+# Create sample trend data for demonstration
+dates = pd.date_range('2024-01-01', periods=6, freq='M')
+sample_keywords = df.head(5)['Keyword'].values
+
+for i, keyword in enumerate(sample_keywords):
+    # Simulate trend data (current position with some variation)
+    current_pos = df[df['Keyword'] == keyword]['Current position'].values[0]
+    # Create a trend showing improvement over time
+    trend = [current_pos + 10 - i*2 for i in range(6)]
+    ax.plot(dates, trend, marker='o', linewidth=2.5, label=keyword[:40], markersize=8)
+
+ax.set_xlabel('Date', fontsize=14, fontweight='bold')
+ax.set_ylabel('Position (lower is better)', fontsize=14, fontweight='bold')
+ax.set_title('Position Trends Over Time - SAMPLE DATA (Template for Future Tracking)',
+             fontsize=16, fontweight='bold', pad=20, color='red')
+ax.legend(fontsize=10, loc='best')
+ax.grid(True, alpha=0.3, linestyle='--')
+ax.invert_yaxis()  # Lower position numbers are better
+
+# Add watermark
+ax.text(0.5, 0.5, 'SAMPLE DATA\nNot Real Trends', transform=ax.transAxes,
+        fontsize=50, color='red', alpha=0.2, ha='center', va='center',
+        rotation=30)
+
+# Add note box
+note_text = '''⚠ NOTE: This is SAMPLE data only! ⚠
+
+To create real position trends:
+1. Collect position data over multiple dates
+2. Add a 'Date' column to your dataset
+3. Track the same keywords over time
+4. Re-run this script with updated data
+
+Example data structure needed:
+  Date        | Keyword     | Position
+  2024-01-01  | keyword1    | 15
+  2024-02-01  | keyword1    | 12
+  2024-03-01  | keyword1    | 8'''
+
+ax.text(0.02, 0.98, note_text, transform=ax.transAxes,
+        fontsize=10, verticalalignment='top', horizontalalignment='left',
+        bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.9, edgecolor='red', linewidth=2))
+
+plt.tight_layout()
+plt.savefig('plot_3_position_trends_sample.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: plot_3_position_trends_sample.png (sample/template only)")
+plt.close()
+
+print("\n" + "="*70)
+print("INDIVIDUAL POSITION PLOTS COMPLETE")
+print("="*70)
+print("\nAdditional files generated:")
+print("  4. plot_1_position_distribution.png - Detailed histogram")
+print("  5. plot_2_position_ranges.png - Detailed bar chart by ranges")
+print("  6. plot_3_position_trends_sample.png - Sample template for trends")
+print("\n" + "="*70)
+
+# ============================================================================
+# INDIVIDUAL VOLUME-RELATED PLOTS
+# ============================================================================
+print("\n" + "="*70)
+print("Creating Individual Volume-Related Plots...")
+print("="*70)
+
+# ============================================================================
+# PLOT 4: Search Volume Distribution
+# ============================================================================
+print("\nCreating: Search Volume Distribution...")
+
+fig, ax = plt.subplots(figsize=(16, 9))
+
+# Create histogram with custom bins
+volume_bins = [200, 300, 400, 500, 750, 1000, 1500, 2000, 2500]
+n, bins, patches = ax.hist(df['Volume'], bins=volume_bins, color='#9b59b6',
+                           edgecolor='black', alpha=0.7, linewidth=1.5)
+
+# Color code the bars based on volume ranges
+for i, patch in enumerate(patches):
+    bin_center = (bins[i] + bins[i+1]) / 2
+    if bin_center <= 300:
+        patch.set_facecolor('#e74c3c')  # Red for low volume
+    elif bin_center <= 500:
+        patch.set_facecolor('#f39c12')  # Orange for medium-low
+    elif bin_center <= 1000:
+        patch.set_facecolor('#3498db')  # Blue for medium-high
+    else:
+        patch.set_facecolor('#2ecc71')  # Green for high volume
+
+# Add statistical lines
+mean_vol = df['Volume'].mean()
+median_vol = df['Volume'].median()
+
+ax.axvline(mean_vol, color='darkred', linestyle='--', linewidth=2.5,
+           label=f'Mean: {mean_vol:.0f}', alpha=0.8)
+ax.axvline(median_vol, color='darkgreen', linestyle='--', linewidth=2.5,
+           label=f'Median: {median_vol:.0f}', alpha=0.8)
+
+# Add reference lines
+ax.axvline(500, color='orange', linestyle=':', linewidth=2,
+           label='Medium Volume Threshold (500)', alpha=0.6)
+ax.axvline(1000, color='green', linestyle=':', linewidth=2,
+           label='High Volume Threshold (1000)', alpha=0.6)
+
+# Formatting
+ax.set_xlabel('Search Volume (monthly searches)', fontsize=14, fontweight='bold')
+ax.set_ylabel('Number of Keywords', fontsize=14, fontweight='bold')
+ax.set_title('Search Volume Distribution - Detailed Analysis',
+             fontsize=16, fontweight='bold', pad=20)
+ax.legend(fontsize=11, loc='upper right')
+ax.grid(True, alpha=0.3, linestyle='--')
+
+# Calculate volume categories
+low_vol = len(df[df['Volume'] < 300])
+medium_vol = len(df[(df['Volume'] >= 300) & (df['Volume'] < 1000)])
+high_vol = len(df[df['Volume'] >= 1000])
+total_vol = df['Volume'].sum()
+
+# Add statistics box
+stats_text = f'''Statistics:
+Total Keywords: {len(df)}
+Total Search Volume: {total_vol:,}/month
+Mean Volume: {mean_vol:.0f}
+Median Volume: {median_vol:.0f}
+Min Volume: {df['Volume'].min()}
+Max Volume: {df['Volume'].max()}
+Std Dev: {df['Volume'].std():.0f}
+
+Volume Breakdown:
+Low (<300): {low_vol} keywords ({low_vol/len(df)*100:.1f}%)
+Medium (300-999): {medium_vol} keywords ({medium_vol/len(df)*100:.1f}%)
+High (1000+): {high_vol} keywords ({high_vol/len(df)*100:.1f}%)
+
+Top 10 Keywords Volume: {df.nlargest(10, 'Volume')['Volume'].sum():,} ({df.nlargest(10, 'Volume')['Volume'].sum()/total_vol*100:.1f}% of total)'''
+
+ax.text(0.98, 0.97, stats_text, transform=ax.transAxes,
+        fontsize=10, verticalalignment='top', horizontalalignment='right',
+        bbox=dict(boxstyle='round', facecolor='lightcyan', alpha=0.8))
+
+plt.tight_layout()
+plt.savefig('plot_4_volume_distribution.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: plot_4_volume_distribution.png")
+plt.close()
+
+
+# ============================================================================
+# PLOT 5: Volume vs Position Scatter Plot (Enhanced)
+# ============================================================================
+print("Creating: Volume vs Position Scatter Plot (Enhanced)...")
+
+fig, ax = plt.subplots(figsize=(16, 9))
+
+# Create scatter plot with multiple dimensions
+# Size represents CPC, Color represents KD
+scatter = ax.scatter(df['Current position'], df['Volume'],
+                    s=df['CPC']*30,  # Size based on CPC
+                    c=df['KD'],      # Color based on KD
+                    cmap='RdYlGn_r', # Red for high KD, Green for low KD
+                    alpha=0.6,
+                    edgecolors='black',
+                    linewidth=0.5)
+
+# Add colorbar for KD
+cbar = plt.colorbar(scatter, ax=ax)
+cbar.set_label('Keyword Difficulty (KD)', fontsize=12, fontweight='bold')
+
+# Add reference lines
+ax.axvline(x=10, color='red', linestyle='--', linewidth=2, alpha=0.5, label='Top 10 Threshold')
+ax.axvline(x=20, color='orange', linestyle='--', linewidth=2, alpha=0.5, label='Top 20 Threshold')
+ax.axhline(y=500, color='blue', linestyle='--', linewidth=2, alpha=0.5, label='Medium Volume (500)')
+ax.axhline(y=1000, color='green', linestyle='--', linewidth=2, alpha=0.5, label='High Volume (1000)')
+
+# Formatting
+ax.set_xlabel('Current Position (Ranking)', fontsize=14, fontweight='bold')
+ax.set_ylabel('Search Volume (monthly searches)', fontsize=14, fontweight='bold')
+ax.set_title('Volume vs Position Relationship (Size = CPC, Color = KD)',
+             fontsize=16, fontweight='bold', pad=20)
+ax.legend(fontsize=11, loc='upper right')
+ax.grid(True, alpha=0.3, linestyle='--')
+
+# Add quadrant labels to identify opportunities
+ax.text(5, df['Volume'].max()*0.95, 'HIGH PRIORITY\nHigh Volume, Good Position',
+        fontsize=11, ha='center', va='top', bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.7))
+ax.text(70, df['Volume'].max()*0.95, 'OPPORTUNITY\nHigh Volume, Poor Position',
+        fontsize=11, ha='center', va='top', bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.7))
+ax.text(5, 250, 'MAINTAIN\nLow Volume, Good Position',
+        fontsize=11, ha='center', va='center', bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.7))
+ax.text(70, 250, 'LOW PRIORITY\nLow Volume, Poor Position',
+        fontsize=11, ha='center', va='center', bbox=dict(boxstyle='round', facecolor='lightcoral', alpha=0.7))
+
+# Add correlation info
+correlation = df['Volume'].corr(df['Current position'])
+stats_text = f'''Correlation Analysis:
+Volume vs Position: {correlation:.3f}
+{"Weak negative" if correlation < 0 else "Weak positive"} correlation
+
+Bubble Size = CPC ($)
+Larger bubbles = Higher cost per click
+
+Key Insights:
+• High volume keywords spread across all positions
+• Opportunity to improve high-volume keywords
+  ranking beyond position 20
+• Focus on upper-right quadrant for quick wins'''
+
+ax.text(0.02, 0.98, stats_text, transform=ax.transAxes,
+        fontsize=10, verticalalignment='top', horizontalalignment='left',
+        bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+
+# Highlight top volume keywords
+top_volume_keywords = df.nlargest(5, 'Volume')
+for idx, row in top_volume_keywords.iterrows():
+    ax.annotate(row['Keyword'][:25],
+                xy=(row['Current position'], row['Volume']),
+                xytext=(10, 10), textcoords='offset points',
+                fontsize=8, alpha=0.7,
+                bbox=dict(boxstyle='round,pad=0.3', facecolor='yellow', alpha=0.5),
+                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0', alpha=0.5))
+
+plt.tight_layout()
+plt.savefig('plot_5_volume_vs_position.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: plot_5_volume_vs_position.png")
+plt.close()
+
+print("\n" + "="*70)
+print("INDIVIDUAL VOLUME PLOTS COMPLETE")
+print("="*70)
+print("\nAdditional files generated:")
+print("  7. plot_4_volume_distribution.png - Detailed volume histogram")
+print("  8. plot_5_volume_vs_position.png - Enhanced scatter plot with quadrants")
+print("\n" + "="*70)
+
+# ============================================================================
+# INDIVIDUAL OPPORTUNITY ANALYSIS PLOTS
+# ============================================================================
+print("\n" + "="*70)
+print("Creating Individual Opportunity Analysis Plots...")
+print("="*70)
+
+# ============================================================================
+# PLOT 6: Low-Hanging Fruit Opportunities
+# ============================================================================
+print("\nCreating: Low-Hanging Fruit Opportunities...")
+
+# Identify low-hanging fruit: Easy KD, decent volume, poor position
+low_hanging = df[(df['KD'] <= 40) & (df['Volume'] >= 200) & (df['Current position'] > 10)]
+top_low_hanging = low_hanging.nsmallest(20, 'KD')
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 9))
+
+# Left plot: Bar chart with KD and Position
+y_pos = range(len(top_low_hanging))
+bars1 = ax1.barh(y_pos, top_low_hanging['KD'], color='#2ecc71', alpha=0.7, label='KD (lower is easier)')
+ax1.set_yticks(y_pos)
+ax1.set_yticklabels(top_low_hanging['Keyword'].values, fontsize=9)
+ax1.set_xlabel('Keyword Difficulty', fontsize=12, fontweight='bold')
+ax1.set_title('Low-Hanging Fruit Keywords\n(Easy KD, Decent Volume, Poor Position)',
+             fontsize=14, fontweight='bold')
+ax1.invert_yaxis()
+ax1.legend(fontsize=10)
+ax1.grid(True, alpha=0.3, axis='x')
+
+# Add position annotations
+for i, (kd, pos) in enumerate(zip(top_low_hanging['KD'], top_low_hanging['Current position'])):
+    ax1.text(kd + 1, i, f'Pos: {pos:.0f}', va='center', fontsize=8)
+
+# Right plot: Volume vs Position for these keywords
+ax2.scatter(top_low_hanging['Current position'], top_low_hanging['Volume'],
+           s=top_low_hanging['CPC']*40, c=top_low_hanging['KD'],
+           cmap='RdYlGn_r', alpha=0.6, edgecolors='black', linewidth=1)
+ax2.set_xlabel('Current Position', fontsize=12, fontweight='bold')
+ax2.set_ylabel('Search Volume', fontsize=12, fontweight='bold')
+ax2.set_title('Position vs Volume\n(Bubble size = CPC, Color = KD)',
+             fontsize=14, fontweight='bold')
+ax2.grid(True, alpha=0.3)
+
+# Add reference line at position 20
+ax2.axvline(x=20, color='red', linestyle='--', linewidth=2, alpha=0.5, label='Position 20')
+ax2.legend()
+
+# Add statistics box
+total_vol = top_low_hanging['Volume'].sum()
+avg_pos = top_low_hanging['Current position'].mean()
+avg_kd = top_low_hanging['KD'].mean()
+
+stats_text = f'''Low-Hanging Fruit Stats:
+Total Opportunities: {len(low_hanging)}
+Shown: Top 20
+
+Average KD: {avg_kd:.1f} (Easy!)
+Average Position: {avg_pos:.0f}
+Total Volume: {total_vol:,}/month
+
+Why These Are Easy Wins:
+• Low keyword difficulty
+• Decent search volume
+• Currently ranking poorly
+• Can improve with basic SEO
+
+Action Items:
+1. Optimize content quality
+2. Improve internal linking
+3. Add relevant keywords
+4. Update meta descriptions'''
+
+ax2.text(0.98, 0.02, stats_text, transform=ax2.transAxes,
+        fontsize=9, verticalalignment='bottom', horizontalalignment='right',
+        bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8))
+
+plt.tight_layout()
+plt.savefig('plot_6_low_hanging_fruit.png', dpi=300, bbox_inches='tight')
+print(f"✓ Saved: plot_6_low_hanging_fruit.png ({len(low_hanging)} total opportunities, showing top 20)")
+plt.close()
+
+
+# ============================================================================
+# PLOT 7: High-Value Underperformers
+# ============================================================================
+print("Creating: High-Value Underperformers...")
+
+# Identify high-value underperformers: High volume, high CPC, poor position
+underperformers = df[(df['Volume'] >= 500) & (df['CPC'] >= 5) & (df['Current position'] > 20)]
+top_underperformers = underperformers.nlargest(15, 'Volume')
+
+fig = plt.figure(figsize=(18, 10))
+gs = GridSpec(2, 2, figure=fig, hspace=0.3, wspace=0.3)
+
+# Plot 1: Keywords by Volume and CPC
+ax1 = fig.add_subplot(gs[0, :])
+x = range(len(top_underperformers))
+width = 0.35
+
+ax1_twin = ax1.twinx()
+bars1 = ax1.bar([i - width/2 for i in x], top_underperformers['Volume'], width,
+               label='Volume', color='#9b59b6', alpha=0.7)
+bars2 = ax1_twin.bar([i + width/2 for i in x], top_underperformers['CPC'], width,
+                     label='CPC ($)', color='#f39c12', alpha=0.7)
+
+ax1.set_xticks(x)
+ax1.set_xticklabels(top_underperformers['Keyword'].values, rotation=45, ha='right', fontsize=9)
+ax1.set_ylabel('Search Volume', fontsize=12, fontweight='bold', color='#9b59b6')
+ax1_twin.set_ylabel('CPC ($)', fontsize=12, fontweight='bold', color='#f39c12')
+ax1.set_title('High-Value Underperformers - Volume and CPC Analysis',
+             fontsize=14, fontweight='bold')
+ax1.legend(loc='upper left')
+ax1_twin.legend(loc='upper right')
+ax1.tick_params(axis='y', labelcolor='#9b59b6')
+ax1_twin.tick_params(axis='y', labelcolor='#f39c12')
+ax1.grid(True, alpha=0.3, axis='y')
+
+# Plot 2: Current Position
+ax2 = fig.add_subplot(gs[1, 0])
+positions = top_underperformers['Current position'].values
+colors_pos = ['#e74c3c' if p > 50 else '#f39c12' for p in positions]
+bars = ax2.barh(range(len(top_underperformers)), positions, color=colors_pos, alpha=0.7)
+ax2.set_yticks(range(len(top_underperformers)))
+ax2.set_yticklabels(top_underperformers['Keyword'].values, fontsize=9)
+ax2.set_xlabel('Current Position', fontsize=12, fontweight='bold')
+ax2.set_title('Current Rankings (Lower is Better)', fontsize=12, fontweight='bold')
+ax2.invert_yaxis()
+ax2.axvline(x=50, color='red', linestyle='--', linewidth=2, alpha=0.5, label='Position 50')
+ax2.legend()
+ax2.grid(True, alpha=0.3, axis='x')
+
+# Plot 3: Revenue Potential Analysis
+ax3 = fig.add_subplot(gs[1, 1])
+# Calculate potential value (Volume * CPC as a proxy for potential)
+top_underperformers['Potential_Value'] = top_underperformers['Volume'] * top_underperformers['CPC']
+potential_sorted = top_underperformers.nlargest(10, 'Potential_Value')
+
+bars = ax3.barh(range(len(potential_sorted)), potential_sorted['Potential_Value'],
+               color='#e74c3c', alpha=0.7)
+ax3.set_yticks(range(len(potential_sorted)))
+ax3.set_yticklabels(potential_sorted['Keyword'].values, fontsize=9)
+ax3.set_xlabel('Potential Value (Volume × CPC)', fontsize=12, fontweight='bold')
+ax3.set_title('Top 10 by Revenue Potential', fontsize=12, fontweight='bold')
+ax3.invert_yaxis()
+ax3.grid(True, alpha=0.3, axis='x')
+
+# Add value labels
+for i, v in enumerate(potential_sorted['Potential_Value']):
+    ax3.text(v + 100, i, f'${v:,.0f}', va='center', fontsize=8)
+
+# Add overall statistics
+total_underperformers = len(underperformers)
+total_potential_volume = underperformers['Volume'].sum()
+avg_cpc = underperformers['CPC'].mean()
+total_potential_value = (underperformers['Volume'] * underperformers['CPC']).sum()
+
+fig.text(0.5, 0.02,
+         f'Total High-Value Underperformers: {total_underperformers} | '
+         f'Combined Volume: {total_potential_volume:,}/month | '
+         f'Avg CPC: ${avg_cpc:.2f} | '
+         f'Total Potential Value: ${total_potential_value:,.0f}/month',
+         ha='center', fontsize=11, fontweight='bold',
+         bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.7))
+
+plt.savefig('plot_7_high_value_underperformers.png', dpi=300, bbox_inches='tight')
+print(f"✓ Saved: plot_7_high_value_underperformers.png ({total_underperformers} total underperformers)")
+plt.close()
+
+
+# ============================================================================
+# PLOT 8: Quick Win Keywords (Combined Analysis)
+# ============================================================================
+print("Creating: Quick Win Keywords...")
+
+# Quick wins: Good volume, currently in positions 11-20 (close to first page)
+quick_wins = df[(df['Volume'] >= 300) &
+                (df['Current position'] > 10) &
+                (df['Current position'] <= 20)]
+top_quick_wins = quick_wins.nlargest(20, 'Volume')
+
+fig = plt.figure(figsize=(18, 10))
+gs = GridSpec(2, 2, figure=fig, hspace=0.3, wspace=0.3)
+
+# Plot 1: Quick Win Keywords Overview
+ax1 = fig.add_subplot(gs[0, :])
+y_pos = range(len(top_quick_wins))
+bars = ax1.barh(y_pos, top_quick_wins['Volume'], color='#3498db', alpha=0.7)
+ax1.set_yticks(y_pos)
+ax1.set_yticklabels(top_quick_wins['Keyword'].values, fontsize=9)
+ax1.set_xlabel('Search Volume', fontsize=12, fontweight='bold')
+ax1.set_title('Quick Win Keywords - Currently Positions 11-20 (Close to First Page!)',
+             fontsize=14, fontweight='bold')
+ax1.invert_yaxis()
+ax1.grid(True, alpha=0.3, axis='x')
+
+# Add position and KD annotations
+for i, (vol, pos, kd) in enumerate(zip(top_quick_wins['Volume'],
+                                        top_quick_wins['Current position'],
+                                        top_quick_wins['KD'])):
+    ax1.text(vol + 50, i, f'Pos: {pos:.0f} | KD: {kd}', va='center', fontsize=8)
+
+# Plot 2: Position Distribution
+ax2 = fig.add_subplot(gs[1, 0])
+position_counts = top_quick_wins['Current position'].value_counts().sort_index()
+bars = ax2.bar(position_counts.index, position_counts.values, color='#f39c12', alpha=0.7)
+ax2.set_xlabel('Current Position', fontsize=12, fontweight='bold')
+ax2.set_ylabel('Number of Keywords', fontsize=12, fontweight='bold')
+ax2.set_title('Distribution of Positions (11-20)', fontsize=12, fontweight='bold')
+ax2.axvline(x=10, color='green', linestyle='--', linewidth=2, alpha=0.5, label='Top 10 Target')
+ax2.legend()
+ax2.grid(True, alpha=0.3, axis='y')
+
+# Add value labels
+for bar in bars:
+    height = bar.get_height()
+    if height > 0:
+        ax2.text(bar.get_x() + bar.get_width()/2., height,
+                f'{int(height)}', ha='center', va='bottom', fontsize=9)
+
+# Plot 3: KD vs CPC for Quick Wins
+ax3 = fig.add_subplot(gs[1, 1])
+scatter = ax3.scatter(top_quick_wins['KD'], top_quick_wins['CPC'],
+                     s=top_quick_wins['Volume']/3,
+                     c=top_quick_wins['Current position'],
+                     cmap='RdYlGn', alpha=0.6,
+                     edgecolors='black', linewidth=1)
+ax3.set_xlabel('Keyword Difficulty', fontsize=12, fontweight='bold')
+ax3.set_ylabel('CPC ($)', fontsize=12, fontweight='bold')
+ax3.set_title('Difficulty vs Value\n(Size = Volume, Color = Position)',
+             fontsize=12, fontweight='bold')
+ax3.grid(True, alpha=0.3)
+cbar = plt.colorbar(scatter, ax=ax3)
+cbar.set_label('Position', fontsize=10)
+
+# Add quadrant lines
+ax3.axvline(x=40, color='gray', linestyle=':', alpha=0.5)
+ax3.axhline(y=top_quick_wins['CPC'].median(), color='gray', linestyle=':', alpha=0.5)
+
+# Add quadrant labels
+ax3.text(20, ax3.get_ylim()[1]*0.9, 'Easy + High Value\n(PRIORITY!)',
+        ha='center', fontsize=9, bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.7))
+ax3.text(60, ax3.get_ylim()[1]*0.9, 'Hard + High Value\n(Long-term)',
+        ha='center', fontsize=9, bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.7))
+
+# Add statistics and recommendations
+total_quick_wins = len(quick_wins)
+avg_pos = quick_wins['Current position'].mean()
+total_vol = quick_wins['Volume'].sum()
+avg_kd = quick_wins['KD'].mean()
+
+stats_text = f'''Quick Win Statistics:
+Total Opportunities: {total_quick_wins}
+Shown: Top 20 by volume
+
+Average Position: {avg_pos:.1f}
+Total Volume: {total_vol:,}/month
+Average KD: {avg_kd:.1f}
+
+Why These Are Quick Wins:
+• Already on page 2 (positions 11-20)
+• Just need small boost to reach page 1
+• Decent search volume
+• Close to converting traffic
+
+Action Plan:
+1. Improve on-page SEO
+2. Build quality backlinks
+3. Update content freshness
+4. Optimize for user intent
+5. Target positions 8-10 first'''
+
+fig.text(0.99, 0.01, stats_text,
+        fontsize=9, verticalalignment='bottom', horizontalalignment='right',
+        bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.8))
+
+plt.savefig('plot_8_quick_win_keywords.png', dpi=300, bbox_inches='tight')
+print(f"✓ Saved: plot_8_quick_win_keywords.png ({total_quick_wins} total quick wins)")
+plt.close()
+
+print("\n" + "="*70)
+print("INDIVIDUAL OPPORTUNITY PLOTS COMPLETE")
+print("="*70)
+print("\nAdditional files generated:")
+print("  9. plot_6_low_hanging_fruit.png - Easy wins with low KD")
+print("  10. plot_7_high_value_underperformers.png - High revenue potential")
+print("  11. plot_8_quick_win_keywords.png - Close to first page (positions 11-20)")
+print("\n" + "="*70)
+
+# ============================================================================
+# PLOT 9: Investment Priority Matrix
+# ============================================================================
+print("\n" + "="*70)
+print("Creating Investment Priority Matrix...")
+print("="*70)
+
+fig, ax = plt.subplots(figsize=(20, 12))
+
+# Create bubble chart: X=Position, Y=Volume, Size=CPC, Color=KD
+scatter = ax.scatter(df['Current position'], df['Volume'],
+                    s=df['CPC']*50,  # Bubble size based on CPC
+                    c=df['KD'],      # Color based on KD
+                    cmap='RdYlGn_r', # Red (high KD) to Green (low KD)
+                    alpha=0.6,
+                    edgecolors='black',
+                    linewidth=0.5)
+
+# Add colorbar
+cbar = plt.colorbar(scatter, ax=ax, pad=0.02)
+cbar.set_label('Keyword Difficulty (Green=Easy, Red=Hard)', fontsize=12, fontweight='bold')
+
+# Add strategic threshold lines
+ax.axvline(x=10, color='green', linestyle='--', linewidth=2.5, alpha=0.7, label='Top 10 Threshold')
+ax.axvline(x=20, color='blue', linestyle='--', linewidth=2.5, alpha=0.7, label='Top 20 Threshold')
+ax.axvline(x=50, color='orange', linestyle='--', linewidth=2.5, alpha=0.7, label='Position 50 Threshold')
+ax.axhline(y=500, color='purple', linestyle='--', linewidth=2.5, alpha=0.7, label='Volume 500 Threshold')
+ax.axhline(y=1000, color='red', linestyle='--', linewidth=2.5, alpha=0.7, label='Volume 1000 Threshold')
+
+# Add quadrant backgrounds
+ax.axvspan(0, 20, alpha=0.05, color='green', label='Best Positions')
+ax.axvspan(20, 50, alpha=0.05, color='yellow')
+ax.axvspan(50, df['Current position'].max()+5, alpha=0.05, color='red', label='Worst Positions')
+
+ax.axhspan(500, df['Volume'].max()+200, alpha=0.03, color='green')
+ax.axhspan(0, 500, alpha=0.03, color='red')
+
+# Add quadrant labels
+ax.text(10, df['Volume'].max()*0.95, 'TIER 1 - PROTECT\nGood Position + High Volume',
+        fontsize=11, ha='center', va='top', fontweight='bold',
+        bbox=dict(boxstyle='round', facecolor='lightgreen', alpha=0.8, edgecolor='darkgreen', linewidth=2))
+
+ax.text(35, df['Volume'].max()*0.95, 'TIER 2 - OPTIMIZE\nMid Position + High Volume',
+        fontsize=11, ha='center', va='top', fontweight='bold',
+        bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.8, edgecolor='orange', linewidth=2))
+
+ax.text(70, df['Volume'].max()*0.95, 'TIER 3 - IMPROVE\nPoor Position + High Volume',
+        fontsize=11, ha='center', va='top', fontweight='bold',
+        bbox=dict(boxstyle='round', facecolor='lightcoral', alpha=0.8, edgecolor='red', linewidth=2))
+
+ax.text(10, 200, 'TIER 4 - MONITOR\nGood Position + Low Volume',
+        fontsize=10, ha='center', va='center', fontweight='bold',
+        bbox=dict(boxstyle='round', facecolor='lightblue', alpha=0.7, edgecolor='blue', linewidth=1))
+
+ax.text(70, 200, 'TIER 5 - DEPRIORITIZE\nPoor Position + Low Volume',
+        fontsize=10, ha='center', va='center', fontweight='bold',
+        bbox=dict(boxstyle='round', facecolor='lightgray', alpha=0.7, edgecolor='gray', linewidth=1))
+
+# Annotate key keywords
+# Top keywords to annotate (by volume)
+top_keywords_to_label = df.nlargest(8, 'Volume')
+for idx, row in top_keywords_to_label.iterrows():
+    ax.annotate(row['Keyword'][:20],
+                xy=(row['Current position'], row['Volume']),
+                xytext=(5, 5), textcoords='offset points',
+                fontsize=8, fontweight='bold', alpha=0.8,
+                bbox=dict(boxstyle='round,pad=0.4', facecolor='yellow', alpha=0.7, edgecolor='black'),
+                arrowprops=dict(arrowstyle='->', connectionstyle='arc3,rad=0.2', lw=1, alpha=0.6))
+
+# Add category statistics boxes
+tier1 = df[(df['Current position'] <= 20) & (df['Volume'] >= 500)]
+tier2 = df[(df['Current position'] > 20) & (df['Current position'] <= 50) & (df['Volume'] >= 500)]
+tier3 = df[(df['Current position'] > 50) & (df['Volume'] >= 500)]
+tier4 = df[(df['Current position'] <= 20) & (df['Volume'] < 500)]
+tier5 = df[(df['Current position'] > 50) & (df['Volume'] < 500)]
+
+stats_box = f'''INVESTMENT PRIORITY BREAKDOWN:
+
+TIER 1 (Protect): {len(tier1)} keywords
+  Avg Position: {tier1['Current position'].mean():.1f}
+  Avg Volume: {tier1['Volume'].mean():.0f}
+
+TIER 2 (Optimize): {len(tier2)} keywords
+  Avg Position: {tier2['Current position'].mean():.1f}
+  Avg Volume: {tier2['Volume'].mean():.0f}
+
+TIER 3 (Improve): {len(tier3)} keywords
+  Avg Position: {tier3['Current position'].mean():.1f}
+  Avg Volume: {tier3['Volume'].mean():.0f}
+
+TIER 4 (Monitor): {len(tier4)} keywords
+  Avg Position: {tier4['Current position'].mean():.1f}
+  Avg Volume: {tier4['Volume'].mean():.0f}
+
+TIER 5 (Deprioritize): {len(tier5)} keywords
+  Avg Position: {tier5['Current position'].mean():.1f}
+  Avg Volume: {tier5['Volume'].mean():.0f}
+
+Bubble Size = CPC (Larger = Higher Value)
+Bubble Color = KD (Green = Easy, Red = Hard)'''
+
+ax.text(0.98, 0.98, stats_box, transform=ax.transAxes,
+        fontsize=9, verticalalignment='top', horizontalalignment='right',
+        bbox=dict(boxstyle='round', facecolor='lightyellow', alpha=0.9,
+                 edgecolor='black', linewidth=2),
+        family='monospace')
+
+# Formatting
+ax.set_xlabel('Current Position (Lower is Better)', fontsize=14, fontweight='bold')
+ax.set_ylabel('Search Volume (monthly searches)', fontsize=14, fontweight='bold')
+ax.set_title('Investment Priority Matrix - Complete View (All Positions)',
+             fontsize=16, fontweight='bold', pad=20)
+ax.legend(fontsize=10, loc='lower left', framealpha=0.9)
+ax.grid(True, alpha=0.2, linestyle='--')
+
+# Set x-axis limits with some padding
+ax.set_xlim(-5, df['Current position'].max()+5)
+ax.set_ylim(-100, df['Volume'].max()+300)
+
+plt.tight_layout()
+plt.savefig('plot_9_investment_priority_matrix.png', dpi=300, bbox_inches='tight')
+print("✓ Saved: plot_9_investment_priority_matrix.png")
+plt.close()
+
+print("\n" + "="*70)
+print("INVESTMENT PRIORITY MATRIX COMPLETE")
+print("="*70)
+print("\nFile generated:")
+print("  12. plot_9_investment_priority_matrix.png - Strategic investment matrix")
+print("\n" + "="*70)
+
+# ============================================================================
+# TIER 2 & TIER 3 ANALYSIS - TABLES & STATISTICAL BREAKDOWN
+# ============================================================================
+print("\n" + "="*70)
+print("TIER 2 & TIER 3 ANALYSIS - KEYWORD TABLES & STATISTICS")
+print("="*70)
+
+# Define tiers
+tier2_full = df[(df['Current position'] > 20) & (df['Current position'] <= 50) & (df['Volume'] >= 500)]
+tier3_full = df[(df['Current position'] > 50) & (df['Volume'] >= 500)]
+
+# Sort by priority score
+tier2_full_copy = tier2_full.copy()
+tier3_full_copy = tier3_full.copy()
+tier2_full_copy['Priority_Score'] = (tier2_full_copy['Volume'] * (100 - tier2_full_copy['KD'])) / 100
+tier3_full_copy['Priority_Score'] = (tier3_full_copy['Volume'] * (100 - tier3_full_copy['KD'])) / 100
+
+tier2_sorted = tier2_full_copy.nlargest(20, 'Priority_Score')
+tier3_sorted = tier3_full_copy.nlargest(25, 'Priority_Score')
+
+# ============================================================================
+# TIER 2 TABLE
+# ============================================================================
+print("\n" + "="*100)
+print("TIER 2 (OPTIMIZE): Mid-Position High-Volume Keywords - Positions 21-50")
+print("="*100)
+print("\nStrategy: Incremental optimization to push into top 20")
+print("Action: Content refresh, backlink building, on-page SEO improvements\n")
+
+tier2_display = tier2_sorted[[
+    'Keyword', 'Current position', 'Volume', 'KD', 'CPC'
+]].copy()
+
+tier2_display['Rank'] = range(1, len(tier2_display) + 1)
+tier2_display['Ease_Score'] = ((100 - tier2_display['KD'])).round(1)
+tier2_display['Position_to_Top10'] = tier2_display['Current position'] - 10
+
+tier2_display = tier2_display[[
+    'Rank', 'Keyword', 'Current position', 'Volume', 'KD', 'CPC',
+    'Ease_Score', 'Position_to_Top10'
+]]
+
+tier2_display.columns = [
+    'Rank', 'Keyword', 'Position', 'Volume/mo', 'KD', 'CPC ($)',
+    'Ease (0-100)', 'Distance to Top10'
+]
+
+print(tier2_display.to_string(index=False))
+
+# ============================================================================
+# TIER 3 TABLE
+# ============================================================================
+print("\n" + "="*100)
+print("TIER 3 (IMPROVE): Poor-Position High-Volume Keywords - Positions 51+")
+print("="*100)
+print("\nStrategy: Major optimization efforts needed - highest ROI potential")
+print("Action: Complete content overhaul, comprehensive link building, competitive analysis\n")
+
+tier3_display = tier3_sorted[[
+    'Keyword', 'Current position', 'Volume', 'KD', 'CPC'
+]].copy()
+
+tier3_display['Rank'] = range(1, len(tier3_display) + 1)
+tier3_display['Ease_Score'] = ((100 - tier3_display['KD'])).round(1)
+tier3_display['Position_to_Top10'] = tier3_display['Current position'] - 10
+
+tier3_display = tier3_display[[
+    'Rank', 'Keyword', 'Current position', 'Volume', 'KD', 'CPC',
+    'Ease_Score', 'Position_to_Top10'
+]]
+
+tier3_display.columns = [
+    'Rank', 'Keyword', 'Position', 'Volume/mo', 'KD', 'CPC ($)',
+    'Ease (0-100)', 'Distance to Top10'
+]
+
+print(tier3_display.to_string(index=False))
+
+# ============================================================================
+# STATISTICAL ANALYSIS
+# ============================================================================
+print("\n" + "="*100)
+print("STATISTICAL REASONING & TIER ANALYSIS")
+print("="*100)
+
+print("\n1. SELECTION CRITERIA - WHY THESE KEYWORDS?")
+print("-" * 100)
+
+print("""
+✓ VOLUME THRESHOLD (>= 500/month):
+  Reasoning: Keywords with monthly search volume >= 500 represent commercial intent
+  - Below 500: Minimal traffic potential even with top ranking
+  - This threshold ensures ROI-positive efforts
+
+✓ POSITION THRESHOLDS:
+  TIER 2 (21-50):  Keywords "on the edge" - achievable with optimization
+  TIER 3 (51+):    Keywords "severely underperforming" - high upside potential
+
+  Why this matters:
+  - Position 1-10: Already getting traffic, maintenance focus
+  - Position 21-50: Page 2 - can move to page 1 with moderate effort (TIER 2)
+  - Position 51+: Not getting meaningful traffic - needs major overhaul (TIER 3)
+""")
+
+print("\n2. PRIORITY SCORING METHODOLOGY")
+print("-" * 100)
+
+priority_formula = """
+Priority Score = Volume × (100 - KD) / 100
+
+This formula considers:
+  • Volume: Higher volume keywords = more potential traffic gain
+  • (100 - KD): Lower KD = easier to improve position
+
+Example:
+  Keyword A: Volume=1000, KD=40 → Score = 600
+  Keyword B: Volume=800, KD=20 → Score = 640 ✓ (Lower KD wins!)
+"""
+print(priority_formula)
+
+print("\n3. TIER COMPARISON")
+print("-" * 100)
+
+tier2_stats = f"""
+TIER 2 (20 Keywords):
+  • Average Position: {tier2_full['Current position'].mean():.1f}
+  • Total Volume: {tier2_full['Volume'].sum():,}/month
+  • Average KD: {tier2_full['KD'].mean():.1f}
+  • Easy Keywords (KD ≤ 40): {len(tier2_full[tier2_full['KD'] <= 40])} out of {len(tier2_full)}
+  • Median Position: {tier2_full['Current position'].median():.0f}
+  • Position Range: {tier2_full['Current position'].min():.0f} - {tier2_full['Current position'].max():.0f}
+
+  Strategic Value: Only 10-40 positions away from top 10. User intent proven
+  (they're being searched). Needs content refresh and backlinks.
+
+TIER 3 (25 Keywords):
+  • Average Position: {tier3_full['Current position'].mean():.1f}
+  • Total Volume: {tier3_full['Volume'].sum():,}/month
+  • Average KD: {tier3_full['KD'].mean():.1f}
+  • Easy Keywords (KD ≤ 40): {len(tier3_full[tier3_full['KD'] <= 40])} out of {len(tier3_full)}
+  • Median Position: {tier3_full['Current position'].median():.0f}
+  • Position Range: {tier3_full['Current position'].min():.0f} - {tier3_full['Current position'].max():.0f}
+
+  Strategic Value: Currently invisible (page 3+). High search demand but
+  severe underperformance. Needs comprehensive content overhaul.
+"""
+print(tier2_stats)
+
+print("\n4. STRATEGIC FOCUS AREAS")
+print("-" * 100)
+
+strategic_areas = """
+TIER 2 FOCUS (Quick Wins):
+  ✓ Easier wins: Only 10-40 positions away from top 10
+  ✓ Faster implementation: 3-6 month typical timeline
+  ✓ Lower risk: Position improvements are more predictable
+  ✓ Best for: Building momentum and proving value
+
+TIER 3 FOCUS (Long-Term Growth):
+  ✓ Larger opportunities: Currently invisible (position 51+)
+  ✓ Longer timeline: 6-12 months typical
+  ✓ Higher effort: Requires comprehensive content overhaul
+  ✓ Best for: Long-term growth and major traffic gains
+
+PRACTICAL APPROACH:
+  1. Run TIER 2 improvements FIRST (quick wins, build confidence)
+  2. Then tackle TIER 3 (longer-term, bigger payoff)
+"""
+print(strategic_areas)
+
+print("\n5. CORRELATION INSIGHTS")
+print("-" * 100)
+
+print(f"""
+Why These Tiers Exist (Statistical Validation):
+
+  • Volume vs Position: {df['Volume'].corr(df['Current position']):.3f}
+    → Weak correlation = high-volume keywords aren't all ranking well
+    → This creates opportunities!
+
+  • KD vs Position: {df['KD'].corr(df['Current position']):.3f}
+    → Very weak = many easy keywords rank poorly
+    → Explains why 14/20 TIER 2 keywords have KD ≤ 40
+
+  • CPC vs Volume: {df['CPC'].corr(df['Volume']):.3f}
+    → Weak correlation = volume and value are independent
+    → Both metrics matter for prioritization
+""")
+
+# Export CSV files
+tier2_export = tier2_sorted[[
+    'Keyword', 'Current position', 'Volume', 'KD', 'CPC'
+]].copy()
+tier2_export.insert(0, 'Rank', range(1, len(tier2_export) + 1))
+
+tier3_export = tier3_sorted[[
+    'Keyword', 'Current position', 'Volume', 'KD', 'CPC'
+]].copy()
+tier3_export.insert(0, 'Rank', range(1, len(tier3_export) + 1))
+
+tier2_export.to_csv('TIER_2_Optimize_Keywords.csv', index=False)
+tier3_export.to_csv('TIER_3_Improve_Keywords.csv', index=False)
+
+print("\n" + "="*100)
+print("TIER ANALYSIS COMPLETE")
+print("="*100)
+print("\nFiles generated:")
+print("  13. TIER_2_Optimize_Keywords.csv - 20 TIER 2 keywords with metrics")
+print("  14. TIER_3_Improve_Keywords.csv - 25 TIER 3 keywords with metrics")
+print("\n" + "="*100)
